@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Post from "../models/post.models.js";
 import User from "../models/user.models.js";
-import Like from "../models/like.models.js";
 import Comment from "../models/comment.models.js"
 import { uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
 

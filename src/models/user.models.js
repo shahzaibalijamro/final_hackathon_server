@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
+
 const userSchema = new mongoose.Schema({
     fullName: {
         type: String,
@@ -46,6 +47,42 @@ const userSchema = new mongoose.Schema({
         ref: "Like"
     }]
 }, { timestamps: true })
+// const userSchema = new mongoose.Schema({
+//     fullName: {
+//         type: String,
+//         required: [true, 'Username is required!'],
+//     },
+//     userName: {
+//         type: String,
+//         required: [true, 'Username is required!'],
+//         unique: [true, 'Username must be unique!'],
+//         lowercase: true,
+//     },
+//     email: {
+//         type: String,
+//         required: [true, 'Email is required!'],
+//         unique: [true, 'Email must be unique!'],
+//         lowercase: true,
+//         validate: {
+//             validator: function (value) {
+//                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+//             },
+//             message: props => `${props.value} is not a valid email address!`,
+//         }
+//     },
+//     password: {
+//         type: String,
+//         required: [true, 'Password is required!']
+//     },
+//     posts: [{
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: "Post"
+//     }],
+//     likedPosts: [{
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: "Like"
+//     }]
+// }, { timestamps: true })
 
 userSchema.pre("save", async function (next) {
     if (!this.isModified()) return next()

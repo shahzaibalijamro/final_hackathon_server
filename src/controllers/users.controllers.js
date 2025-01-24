@@ -10,9 +10,9 @@ import { sendWelcomeEmail } from "../utils/nodemailer.utils.js";
 
 // registers User
 const registerUser = async (req, res) => {
-    const { userName, email, password } = req.body;
+    const { userName, email, password,fullName } = req.body;
     try {
-        const user = await User.create({ userName, email, password });
+        const user = await User.create({ userName, email, password,fullName });
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
         res
             .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
@@ -72,7 +72,7 @@ const registerUserWithProfilePicture = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         if (file) {
-            deleteImageFromCloudinary(profilePicture.public_id)
+            await deleteImageFromCloudinary(profilePicture.public_id)
         }
         if (error.message === "Password does not meet the required criteria") {
             return res.status(400).json({ message: "Password does not meet the required criteria!" });
@@ -142,6 +142,7 @@ const deleteUser = async (req, res) => {
             { $pull: { likes: decodedToken._id } }, { session }
         );
         const deleteUser = await User.findByIdAndDelete(decodedToken._id, { session });
+        await deleteImageFromCloudinary(deleteUser.profilePicture.public_id)
         if (!deleteUser) {
             await session.abortTransaction();
             return res.status(404).json({

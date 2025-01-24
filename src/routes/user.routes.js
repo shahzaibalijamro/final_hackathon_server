@@ -6,6 +6,7 @@ const userRouter = express.Router();
 
 //register User
 userRouter.post("/register",upload.single("profilePicture"), registerUserWithProfilePicture)
+// userRouter.post("/register", registerUser)
 
 //login User
 userRouter.post("/login", loginUser)
