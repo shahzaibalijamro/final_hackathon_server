@@ -5,6 +5,8 @@ import Comment from "../models/comment.models.js"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { generateAccessandRefreshTokens } from "../utils/token.utils.js";
+import { deleteImageFromCloudinary, uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
+import { sendWelcomeEmail } from "../utils/nodemailer.utils.js";
 
 // registers User
 const registerUser = async (req, res) => {
@@ -41,39 +43,54 @@ const registerUser = async (req, res) => {
 }
 
 const registerUserWithProfilePicture = async (req, res) => {
-    const { fullName,userName, email, password } = req.body;
+    const { fullName, userName, email, password } = req.body;
     const file = req.file ? req.file.buffer : "";
-    console.log(fullName,userName,email,password,file);
-    res.send("done")
-    // try {
-    //     const user = await User.create({ userName, email, password,fullName });
-    //     const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
-    //     res
-    //         .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
-    //         .status(201).json({
-    //             message: "New user created",
-    //             user,
-    //             accessToken
-    //         })
-    // } catch (error) {
-    //     console.log(error.message);
-    //     if (error.message === "Password does not meet the required criteria") {
-    //         return res.status(400).json({ message: "Password does not meet the required criteria!" });
-    //     }
-    //     if (error.code === 11000) {
-    //         return res.status(400).json({ message: "userName or email already exists." });
-    //     }
-    //     if (error.message === "Username must be unique!") {
-    //         return res.status(400).json({ message: "This username is already taken." });
-    //     }
-    //     if (error.message === "Email must be unique!") {
-    //         return res.status(400).json({ message: "This email is already taken." });
-    //     }
-    //     if (error.name === 'ValidationError') {
-    //         return res.status(400).json({ message: error.message });
-    //     }
-    //     res.status(500).json({ message: 'Server error' });
-    // }
+    let profilePicture;
+    try {
+        if (file) {
+            profilePicture = await uploadImageToCloudinary(file);
+            if (!profilePicture) {
+                return res.status(500).json({
+                    message: "Could not upload media!"
+                })
+            }
+        }
+        console.log(profilePicture);
+        const user = await User.create({ userName, email, password, fullName, profilePicture: {
+            url: profilePicture.url,
+            public_id: profilePicture.public_id
+        } });
+        const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
+        await sendWelcomeEmail(email);
+        res
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
+            .status(201).json({
+                message: "New user created",
+                user,
+                accessToken
+            })
+    } catch (error) {
+        console.log(error.message);
+        if (file) {
+            deleteImageFromCloudinary(profilePicture.public_id)
+        }
+        if (error.message === "Password does not meet the required criteria") {
+            return res.status(400).json({ message: "Password does not meet the required criteria!" });
+        }
+        if (error.code === 11000) {
+            return res.status(400).json({ message: "userName or email already exists." });
+        }
+        if (error.message === "Username must be unique!") {
+            return res.status(400).json({ message: "This username is already taken." });
+        }
+        if (error.message === "Email must be unique!") {
+            return res.status(400).json({ message: "This email is already taken." });
+        }
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Server error' });
+    }
 }
 
 const loginUser = async function (req, res) {
@@ -122,7 +139,7 @@ const deleteUser = async (req, res) => {
         const deleteUserComments = await Comment.deleteMany({ userId: decodedToken._id }, { session });
         const deleteUserLikes = await Post.updateMany(
             { likes: decodedToken._id },
-            { $pull: { likes: decodedToken._id } },{session}
+            { $pull: { likes: decodedToken._id } }, { session }
         );
         const deleteUser = await User.findByIdAndDelete(decodedToken._id, { session });
         if (!deleteUser) {
@@ -153,4 +170,4 @@ const deleteUser = async (req, res) => {
 };
 
 
-export { registerUser, loginUser, deleteUser,registerUserWithProfilePicture }
+export { registerUser, loginUser, deleteUser, registerUserWithProfilePicture }

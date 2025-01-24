@@ -24,8 +24,14 @@ const userSchema = new mongoose.Schema({
         }
     },
     profilePicture: {
-        type: String,
-        required: [true, 'Profile Picture is required!']
+        public_id: {
+            type: String,
+            required: [true, 'public_id is required!']
+        },
+        url: {
+            type: String,
+            required: [true, 'url is required!']
+        }
     },
     password: {
         type: String,

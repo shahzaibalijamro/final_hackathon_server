@@ -30,10 +30,25 @@ const uploadImageToCloudinary = async (buffer) => {
         });
 
         console.log("Upload successful:", uploadResult.url);
-        return uploadResult.url;
+        return uploadResult;
     } catch (error) {
         console.error("Error in Cloudinary upload:", error);
         return null;
     }
 };
-export { uploadImageToCloudinary };
+
+const deleteImageFromCloudinary = async (publicId) => {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    try {
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log('Image deleted:', result);
+    } catch (error) {
+        console.error('Error deleting image:', error);
+    }
+};
+
+export { uploadImageToCloudinary,deleteImageFromCloudinary };
