@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Post from "../models/post.models.js";
 import User from "../models/user.models.js";
 import Comment from "../models/comment.models.js"
-import { uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
+import { deleteImageFromCloudinary, uploadImageToCloudinary } from "../utils/cloudinary.utils.js";
 
 const createPost = async (req, res) => {
     const { content } = req.body;
@@ -30,7 +30,10 @@ const createPost = async (req, res) => {
         //create post
         const post = await Post.create([{
             content: content || "",
-            media: media || "",
+            media: media ? {
+                url: media.url,
+                public_id: media.public_id
+            } : "",
             userId: user._id,
         }], { session });
         //update user posts
@@ -49,6 +52,57 @@ const createPost = async (req, res) => {
         })
     } finally {
         if (session) await session.endSession();
+    }
+}
+
+const deletePost = async (req, res) => {
+    const { postId } = req.params;
+    const user = req.user;
+    const accessToken = req.tokens ? req.tokens.accessToken : "";
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+        return res.status(400).json({
+            message: "Post Id is required and must be valid!"
+        })
+    }
+    let session;
+    try {
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found!"
+            })
+        }
+        if (post.userId.toString() !== user._id.toString()) {
+            return res.status(401).json({
+                message: "You are not authorized to delete this post!"
+            })
+        }
+        if (post.media) {
+            await deleteImageFromCloudinary(post.media.public_id);
+        }
+        session = await mongoose.startSession();
+        session.startTransaction();
+        await User.findByIdAndUpdate(user._id, { $pull: { posts: post._id } }, { session });
+        await Comment.deleteMany({postId}).session(session);
+        await Post.findByIdAndDelete(post._id).session(session);
+        await session.commitTransaction();
+        return res.status(200).json({
+            message: "Post deleted!",
+            ...(accessToken && { accessToken })
+        })
+    } catch (error) {
+        console.log(error);
+        if (session) {
+            await session.abortTransaction();
+        }
+        console.log(error);
+        return res.status(500).json({
+            message: "Something went wrong!"
+        })
+    }finally{
+        if (session) {
+            await session.endSession();
+        }
     }
 }
 
@@ -214,4 +268,4 @@ const getMyPosts = async (req, res) => {
     }
 }
 
-export { createPost, likePost, getAllPosts, addComment, getMyPosts }
+export { createPost, likePost, getAllPosts, addComment, getMyPosts, deletePost }
