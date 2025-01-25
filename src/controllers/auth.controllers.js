@@ -23,7 +23,9 @@ const isUserLoggedIn = async (req, res) => {
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
         res
             //Adding cookies
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, maxAge: 24 * 60 * 60 * 1000, sameSite: 'lax' })
+            .cookie("refreshToken", refreshToken, { httpOnly: true,
+                secure: process.env.STATUS === "development" ? false : true, 
+                maxAge: 24 * 60 * 60 * 1000, sameSite: process.env.STATUS === "development" ? 'Lax' : 'None' })
             .json({
                 accessToken,
                 user
@@ -99,7 +101,7 @@ const logoutUser = async (req, res) => {
         if (!checkToken) return res.status(401).json({
             message: "Invalid or expired token!"
         })
-        res.clearCookie("refreshToken", { httpOnly: true, secure: false, maxAge: 0, sameSite: 'lax', });
+        res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.STATUS === "development" ? false : true, maxAge: 0, sameSite: process.env.STATUS === "development" ? 'Lax' : 'None', });
         res.status(200).json({
             message: "User logged out successfully"
         })
