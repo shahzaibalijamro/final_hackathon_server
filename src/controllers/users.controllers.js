@@ -15,7 +15,7 @@ const registerUser = async (req, res) => {
         const user = await User.create({ userName, email, password,fullName });
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
         res
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 })
             .status(201).json({
                 message: "New user created",
                 user,
@@ -63,7 +63,7 @@ const registerUserWithProfilePicture = async (req, res) => {
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user);
         await sendWelcomeEmail(email);
         res
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 })
             .status(201).json({
                 message: "New user created",
                 user,
@@ -111,7 +111,7 @@ const loginUser = async function (req, res) {
         })
         const { accessToken, refreshToken } = generateAccessandRefreshTokens(user)
         res
-            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 })
             .status(200)
             .json({
                 message: "User successfully logged in!",
@@ -152,8 +152,8 @@ const deleteUser = async (req, res) => {
         await session.commitTransaction();
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: true,
-            sameSite: 'None',
+            secure: false,
+            sameSite: 'lax',
             maxAge: 0,
             path: '/',
         });

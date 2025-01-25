@@ -96,7 +96,7 @@ const getAllPosts = async (req, res) => {
     const skip = (+page - 1) * +limit;
     try {
         const posts = await Post.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).populate([
-            { path: 'userId', select: 'userName' },
+            { path: 'userId', select: 'userName profilePicture' },
             {
                 path: 'comments',
                 options: { sort: { createdAt: -1 } },
@@ -173,13 +173,14 @@ const getMyPosts = async (req, res) => {
     const limit = req.query?.limit || 10;
     const skip = (+page - 1) * +limit;
     console.log(req.params);
-    console.log(req.query);
+    console.log(userName);
     if (!userName) {
         return res.status(400).json({
             message: "Username is required!"
         })
     }
     try {
+        // const user = await User.findOne({ userName })
         const user = await User.findOne({ userName }).populate({
             path: 'posts',
             options: {
