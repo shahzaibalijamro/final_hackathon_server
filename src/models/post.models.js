@@ -6,12 +6,10 @@ const postSchema = new mongoose.Schema({
     },
     media:{
         public_id: {
-            type: String,
-            required: [true, 'public_id is required!']
+            type: String
         },
         url: {
-            type: String,
-            required: [true, 'url is required!']
+            type: String
         }
     },
     userId: {
