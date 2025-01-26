@@ -6,12 +6,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Username is required!'],
     },
-    userName: {
-        type: String,
-        required: [true, 'Username is required!'],
-        unique: [true, 'Username must be unique!'],
-        lowercase: true,
-    },
     email: {
         type: String,
         required: [true, 'Email is required!'],
@@ -24,65 +18,37 @@ const userSchema = new mongoose.Schema({
             message: props => `${props.value} is not a valid email address!`,
         }
     },
-    profilePicture: {
-        public_id: {
-            type: String,
-            required: [true, 'public_id is required!']
-        },
-        url: {
-            type: String,
-            required: [true, 'url is required!']
-        }
-    },
     password: {
         type: String,
         required: [true, 'Password is required!']
     },
-    posts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post"
-    }],
-    likedPosts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Like"
-    }]
+    cnicNo: {
+        type: String,
+        required: [true, 'CNIC number is required!'],
+        unique: [true, 'CNIC number must be unique!'],
+        validate: {
+            validator: function (value) {
+                return /^[0-9]{13}$/.test(value);
+            },
+            message: props => `${props.value} is not a valid CNIC number! CNIC should be a 13-digit numeric value.`,
+        }
+    },
+    role: { 
+        type: String,
+        enum: ['user', 'admin'], 
+        default: 'user' ,
+        validate: {
+            validator: function (value) {
+                return value === 'user' || value === 'admin';
+            },
+            message: props => `${props.value} is not a valid role. It must be 'user' or 'admin'.`
+        }
+    },
+    isPasswordChanged: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true })
-// const userSchema = new mongoose.Schema({
-//     fullName: {
-//         type: String,
-//         required: [true, 'Username is required!'],
-//     },
-//     userName: {
-//         type: String,
-//         required: [true, 'Username is required!'],
-//         unique: [true, 'Username must be unique!'],
-//         lowercase: true,
-//     },
-//     email: {
-//         type: String,
-//         required: [true, 'Email is required!'],
-//         unique: [true, 'Email must be unique!'],
-//         lowercase: true,
-//         validate: {
-//             validator: function (value) {
-//                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-//             },
-//             message: props => `${props.value} is not a valid email address!`,
-//         }
-//     },
-//     password: {
-//         type: String,
-//         required: [true, 'Password is required!']
-//     },
-//     posts: [{
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Post"
-//     }],
-//     likedPosts: [{
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Like"
-//     }]
-// }, { timestamps: true })
 
 userSchema.pre("save", async function (next) {
     if (!this.isModified()) return next()

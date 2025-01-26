@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.models.js"
 import { generateAccessandRefreshTokens } from "../utils/token.utils.js";
+
 const verifyRequest = async (req, res, next) => {
     const accessToken = req.headers["authorization"]?.split(' ')[1];
     const currentRefreshToken = req.cookies?.refreshToken;
@@ -62,4 +63,28 @@ const verifyRequest = async (req, res, next) => {
     }
 }
 
-export { verifyRequest }
+const checkIfAdmin = async (req, res, next) => {
+    const accessToken = req.headers["authorization"]?.split(' ')[1];
+    const currentRefreshToken = req.cookies?.refreshToken;
+    if (!accessToken) return res.status(401).json({
+        message: "No access token recieved!"
+    })
+    try {
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+        req.user = decoded;
+        const user = await User.findById(decoded._id);
+        if (user.role !== 'admin') {
+            return res.status(401).json({
+                message: "You are not authorized to add categories!"
+            })
+        }
+        next()
+    }catch{
+        return res.status(500).json({
+            message: "Something went wrong!"
+        })
+    }
+}
+
+
+export { verifyRequest,checkIfAdmin }

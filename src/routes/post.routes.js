@@ -1,26 +1,26 @@
-import express from "express";
-import { verifyRequest } from "../middlewares/auth.middlewares.js";
-import { addComment, createPost, deletePost, getAllPosts, getMyPosts, likePost } from "../controllers/post.controllers.js";
-import { upload } from "../middlewares/multer.middlewares.js";
+// import express from "express";
+// import { verifyRequest } from "../middlewares/auth.middlewares.js";
+// import { addComment, createPost, deletePost, getAllPosts, getMyPosts, likePost } from "../controllers/post.controllers.js";
+// import { upload } from "../middlewares/multer.middlewares.js";
 
-const postRouter = express.Router();
+// const postRouter = express.Router();
 
-//add post
-postRouter.post("/post",verifyRequest,upload.single("file"),createPost);
+// //add post
+// postRouter.post("/post",verifyRequest,upload.single("file"),createPost);
 
-//delete post
-postRouter.delete("/post/:postId",verifyRequest,deletePost);
+// //delete post
+// postRouter.delete("/post/:postId",verifyRequest,deletePost);
 
-//like post
-postRouter.post("/post/:postId",verifyRequest,likePost);
+// //like post
+// postRouter.post("/post/:postId",verifyRequest,likePost);
 
-//single user posts
-postRouter.get("/posts/user",verifyRequest,getMyPosts);
+// //single user posts
+// postRouter.get("/posts/user",verifyRequest,getMyPosts);
 
-//like post
-postRouter.get("/posts",getAllPosts);
+// //like post
+// postRouter.get("/posts",getAllPosts);
 
-//add comment
-postRouter.post("/post/comment/:postId",verifyRequest,addComment);
+// //add comment
+// postRouter.post("/post/comment/:postId",verifyRequest,addComment);
 
-export {postRouter};
+// export {postRouter};
